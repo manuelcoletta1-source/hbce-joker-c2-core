@@ -1,0 +1,38 @@
+{
+  "v": "HBCE-EVIDENCE-1",
+  "request_id": "22222222-2222-2222-2222-222222222222",
+  "ipr_subject": "IPR-USER-0002",
+  "ts": {
+    "start": "2026-03-02T11:00:00Z",
+    "end": "2026-03-02T11:00:00Z"
+  },
+  "policy": {
+    "id": "HBCE-POLICY-CORE",
+    "version": "1.0.0",
+    "result": "DENY",
+    "reasons": ["EXECUTE_EXTERNAL not allowed in domain governance"]
+  },
+  "gate": {
+    "result": "DENY",
+    "reasons": ["Policy restriction"]
+  },
+  "hashes": {
+    "input_hash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "plan_hash": null,
+    "output_hash": null
+  },
+  "exec": {
+    "status": "SKIPPED",
+    "tool_trace": []
+  },
+  "chain": {
+    "prev_entry_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    "entry_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "height": 2
+  },
+  "sig": {
+    "alg": "ed25519",
+    "by": "JOKER-C2",
+    "value": "SIGNATURE_PLACEHOLDER"
+  }
+}
