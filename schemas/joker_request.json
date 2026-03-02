@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hbce.example/schemas/joker_request.json",
+  "title": "HBCE JOKER-C2 Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "request_id", "ts", "ipr_subject", "intent", "scope"],
+  "properties": {
+    "v": { "type": "string", "const": "JOKER-REQUEST-1" },
+
+    "request_id": {
+      "type": "string",
+      "pattern": "^[0-9a-fA-F-]{36}$"
+    },
+
+    "ts": {
+      "type": "string",
+      "format": "date-time"
+    },
+
+    "ipr_subject": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 128
+    },
+
+    "intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "summary"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["READ_ONLY", "WRITE_INTERNAL", "EXECUTE_TOOL", "EXECUTE_EXTERNAL"]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "risk_hint": {
+          "type": "string",
+          "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+        }
+      }
+    },
+
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["domain", "tools_allowed"],
+      "properties": {
+        "domain": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "tools_allowed": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 64,
+          "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+        },
+        "targets": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 256,
+          "items": { "type": "string", "minLength": 1, "maxLength": 256 }
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "max_steps": { "type": "integer", "minimum": 0, "maximum": 10000 },
+            "max_cost": { "type": "number", "minimum": 0 },
+            "max_duration_ms": { "type": "integer", "minimum": 0, "maximum": 3600000 }
+          }
+        }
+      }
+    },
+
+    "params": {
+      "type": "object",
+      "additionalProperties": true
+    },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "client": { "type": "string", "maxLength": 256 },
+        "locale": { "type": "string", "maxLength": 32 },
+        "trace_id": { "type": "string", "maxLength": 128 }
+      }
+    }
+  }
+}
