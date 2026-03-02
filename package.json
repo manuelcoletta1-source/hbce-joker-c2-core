@@ -1,0 +1,12 @@
+{
+  "name": "hbce-joker-c2-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Deterministic AI governance runtime (IPR · Fail-Closed · Evidence-by-Design).",
+  "license": "UNLICENSED",
+  "scripts": {
+    "run:allow": "node cli.js examples/request.allow.sample.json",
+    "run:deny": "node cli.js examples/request.deny.sample.json"
+  }
+}
