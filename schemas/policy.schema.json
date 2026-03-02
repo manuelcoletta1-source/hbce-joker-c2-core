@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hbce.example/schemas/policy.schema.json",
+  "title": "HBCE Policy (Machine-Checkable)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "policy_id", "version", "default", "rules", "limits", "gates"],
+  "properties": {
+    "v": { "type": "string", "const": "HBCE-POLICY-1" },
+
+    "policy_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "version": { "type": "string", "minLength": 1, "maxLength": 64 },
+
+    "default": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision"],
+      "properties": {
+        "decision": { "type": "string", "enum": ["DENY"] }
+      }
+    },
+
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "when", "then"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "maxLength": 128 },
+
+          "when": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["domain", "intent_kind"],
+            "properties": {
+              "domain": { "type": "string", "minLength": 1, "maxLength": 128 },
+              "intent_kind": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 8,
+                "items": {
+                  "type": "string",
+                  "enum": ["READ_ONLY", "WRITE_INTERNAL", "EXECUTE_TOOL", "EXECUTE_EXTERNAL"]
+                }
+              },
+              "tools_allowed_all_of": {
+                "type": "array",
+                "minItems": 0,
+                "maxItems": 64,
+                "items": { "type": "string", "minLength": 1, "maxLength": 128 }
+              },
+              "risk_hint_max": {
+                "type": "string",
+                "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+              }
+            }
+          },
+
+          "then": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["decision"],
+            "properties": {
+              "decision": { "type": "string", "enum": ["ALLOW", "DENY"] },
+              "require_human_override": { "type": "boolean" },
+              "require_sandbox": { "type": "boolean" },
+              "reason": { "type": "string", "minLength": 1, "maxLength": 256 }
+            }
+          }
+        }
+      }
+    },
+
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_steps", "max_duration_ms", "max_cost"],
+      "properties": {
+        "max_steps": { "type": "integer", "minimum": 0, "maximum": 10000 },
+        "max_duration_ms": { "type": "integer", "minimum": 0, "maximum": 3600000 },
+        "max_cost": { "type": "number", "minimum": 0 }
+      }
+    },
+
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kill_switch", "rate_limit"],
+      "properties": {
+        "kill_switch": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled"],
+          "properties": {
+            "enabled": { "type": "boolean" }
+          }
+        },
+        "rate_limit": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["max_requests_per_minute"],
+          "properties": {
+            "max_requests_per_minute": { "type": "integer", "minimum": 0, "maximum": 100000 }
+          }
+        }
+      }
+    }
+  }
+}
