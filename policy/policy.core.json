@@ -1,0 +1,32 @@
+{
+  "v": "HBCE-POLICY-1",
+  "policy_id": "HBCE-POLICY-CORE",
+  "version": "1.0.0",
+  "default": { "decision": "DENY" },
+  "rules": [
+    {
+      "id": "allow-readonly-governance",
+      "when": {
+        "domain": "governance",
+        "intent_kind": ["READ_ONLY"],
+        "tools_allowed_all_of": [],
+        "risk_hint_max": "LOW"
+      },
+      "then": {
+        "decision": "ALLOW",
+        "require_human_override": false,
+        "require_sandbox": false,
+        "reason": "READ_ONLY governance access is allowed."
+      }
+    }
+  ],
+  "limits": {
+    "max_steps": 100,
+    "max_duration_ms": 60000,
+    "max_cost": 0
+  },
+  "gates": {
+    "kill_switch": { "enabled": false },
+    "rate_limit": { "max_requests_per_minute": 60 }
+  }
+}
