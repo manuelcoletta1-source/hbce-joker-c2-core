@@ -1,5 +1,9 @@
 // HBCE Joker-C2 Core — config
-// Public-key fingerprint binding for auditability (fail-closed).
+// Dynamic binding to registry active key fingerprint (audit-first).
+
+export const REGISTRY_KEYSET_PATH =
+  process.env.REGISTRY_KEYSET_PATH ||
+  "/home/manuelcoletta1/repos/hbce-joker-c2-registry/registry/keys/keyset.json";
 
 export const JOKER_C2_KEY_SHA256 =
   process.env.JOKER_C2_KEY_SHA256 ||
