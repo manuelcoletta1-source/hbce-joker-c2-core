@@ -3,7 +3,7 @@
 
 export const REGISTRY_KEYSET_PATH =
   process.env.REGISTRY_KEYSET_PATH ||
-  "/home/manuelcoletta1/repos/hbce-joker-c2-registry/registry/keys/keyset.json";
+  "/home/manuelcoletta1/repos/hbce-joker-c2-registry/registry/keys/keyring.json";
 
 export const JOKER_C2_KEY_SHA256 =
   process.env.JOKER_C2_KEY_SHA256 ||
