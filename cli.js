@@ -93,9 +93,14 @@ try {
   const reqCanon = canonicalJson(requestObj);
   const reqSha = sha256Hex(Buffer.from(reqCanon, "utf8"));
 
+  // Deterministic policy hash: bind pack to the exact policy file used.
+  // This makes "policy_sha256" non-null and audit-ready.
+  const policyBytes = fs.readFileSync(policyPathAbs);
+  const policySha256 = sha256Hex(policyBytes);
+
   const inputHashes = {
     request_sha256: reqSha,
-    policy_sha256: evidence?.input_hashes?.policy_sha256 || null,
+    policy_sha256: policySha256,
     registry_sha256: evidence?.input_hashes?.registry_sha256 || null
   };
 
