@@ -34,7 +34,8 @@ function getLatestPackHash(outRootAbs) {
     const base = path.join(outRootAbs, "evidence-pack");
     if (!fs.existsSync(base)) return null;
 
-    const entries = fs.readdirSync(base, { withFileTypes: true })
+    const entries = fs
+      .readdirSync(base, { withFileTypes: true })
       .filter((d) => d.isDirectory())
       .map((d) => {
         const full = path.join(base, d.name);
@@ -45,6 +46,16 @@ function getLatestPackHash(outRootAbs) {
 
     if (entries.length === 0) return null;
     return entries[0].name;
+  } catch {
+    return null;
+  }
+}
+
+function sha256FileIfExists(absPath) {
+  try {
+    if (!fs.existsSync(absPath)) return null;
+    const b = fs.readFileSync(absPath);
+    return sha256Hex(b);
   } catch {
     return null;
   }
@@ -96,6 +107,10 @@ const registryDirAbs = path.resolve(process.cwd(), "registry");
 // Auto prev: if --prev not provided, use latest evidence-pack hash; else GENESIS.
 const prevEntryHash = prevArg || getLatestPackHash(outRootAbs) || "GENESIS";
 
+// Deterministic registry hash: bind pack to the current local registry ledger (if present).
+const registryLedgerAbs = path.join(registryDirAbs, "ledger.jsonl");
+const registrySha256 = sha256FileIfExists(registryLedgerAbs);
+
 try {
   const evidence = runOnce({ requestObj, policyPathAbs, registryDirAbs });
 
@@ -124,7 +139,7 @@ try {
   const inputHashes = {
     request_sha256: reqSha,
     policy_sha256: policySha256,
-    registry_sha256: evidence?.input_hashes?.registry_sha256 || null
+    registry_sha256: registrySha256
   };
 
   const resultJson = {
@@ -166,11 +181,7 @@ try {
   const resultSha = sha256Hex(Buffer.from(resultCanon, "utf8"));
   const chainSha = sha256Hex(Buffer.from(chainCanon, "utf8"));
 
-  const signingBlob = Buffer.from(
-    [manifestSha, resultSha, chainSha].join("\n") + "\n",
-    "utf8"
-  );
-
+  const signingBlob = Buffer.from([manifestSha, resultSha, chainSha].join("\n") + "\n", "utf8");
   const entryHash = sha256Hex(signingBlob);
 
   chainEntry.entry_hash = entryHash;
@@ -202,7 +213,6 @@ try {
   fs.writeFileSync(path.join(packDir, "SIGNATURE_META.json"), canonicalJson(sigMeta));
 
   process.stdout.write((isDeny ? "DENY" : "PASS") + " entry_hash=" + entryHash + "\n");
-
 } catch (e) {
   die("FAIL_CLOSED: " + (e && e.message ? e.message : String(e)));
 }
