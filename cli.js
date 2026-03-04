@@ -75,16 +75,16 @@ const registryDirAbs = path.resolve(process.cwd(), "registry");
 try {
   const evidence = runOnce({ requestObj, policyPathAbs, registryDirAbs });
 
-  const status = evidence?.result?.status;
+  // Align with HBCE-EVIDENCE-1 runtime output:
+  // evidence.policy.result is the deterministic decision: PASS | DENY
+  const policyResult = evidence?.policy?.result;
 
-  if (status !== "PASS" && status !== "FAIL") {
-    die("FAIL_CLOSED: INTERNAL_ERROR missing result.status");
+  if (policyResult !== "PASS" && policyResult !== "DENY") {
+    die("FAIL_CLOSED: INTERNAL_ERROR missing policy.result");
   }
 
-  if (status === "FAIL") {
-    const reasons = Array.isArray(evidence?.result?.reason_codes)
-      ? evidence.result.reason_codes
-      : ["FAIL_CLOSED"];
+  if (policyResult === "DENY") {
+    const reasons = Array.isArray(evidence?.policy?.reasons) ? evidence.policy.reasons : ["DENY"];
     die("FAIL_CLOSED: " + reasons.join(" | "));
   }
 
@@ -101,8 +101,8 @@ try {
 
   const resultJson = {
     status: "PASS",
-    reason_codes: evidence?.result?.reason_codes || ["OK"],
-    checks: evidence?.result?.checks || []
+    reason_codes: ["OK"],
+    checks: []
   };
 
   const chainEntry = {
@@ -156,7 +156,9 @@ try {
 
   const sigMeta = bindSignatureMeta("AA==");
 
-  const signatureB64 = evidence?.signature?.b64 || null;
+  // Runtime already signs HBCE-EVIDENCE-1 ledger entries as evidence.sig.value.
+  // Keep fail-closed: if missing, refuse to emit Evidence Pack.
+  const signatureB64 = evidence?.sig?.value || evidence?.signature?.b64 || null;
   if (!signatureB64) {
     die("FAIL_CLOSED: SIGNATURE_ERROR missing signature");
   }
