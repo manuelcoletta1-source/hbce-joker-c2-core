@@ -29,6 +29,27 @@ function ensureDir(p) {
   fs.mkdirSync(p, { recursive: true });
 }
 
+function getLatestPackHash(outRootAbs) {
+  try {
+    const base = path.join(outRootAbs, "evidence-pack");
+    if (!fs.existsSync(base)) return null;
+
+    const entries = fs.readdirSync(base, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .map((d) => {
+        const full = path.join(base, d.name);
+        const st = fs.statSync(full);
+        return { name: d.name, mtimeMs: st.mtimeMs };
+      })
+      .sort((a, b) => b.mtimeMs - a.mtimeMs);
+
+    if (entries.length === 0) return null;
+    return entries[0].name;
+  } catch {
+    return null;
+  }
+}
+
 const argv = process.argv.slice(2);
 
 function getArgValue(name, def = null) {
@@ -66,11 +87,14 @@ try {
   die("FAIL_CLOSED: JSON_INVALID");
 }
 
-const outRoot = path.resolve(process.cwd(), getArgValue("--out", "out"));
-const prevEntryHash = getArgValue("--prev", "GENESIS");
+const outRootAbs = path.resolve(process.cwd(), getArgValue("--out", "out"));
+const prevArg = getArgValue("--prev", null);
 
 const policyPathAbs = path.resolve(process.cwd(), "policy", "policy.core.json");
 const registryDirAbs = path.resolve(process.cwd(), "registry");
+
+// Auto prev: if --prev not provided, use latest evidence-pack hash; else GENESIS.
+const prevEntryHash = prevArg || getLatestPackHash(outRootAbs) || "GENESIS";
 
 try {
   const evidence = runOnce({ requestObj, policyPathAbs, registryDirAbs });
@@ -94,7 +118,6 @@ try {
   const reqSha = sha256Hex(Buffer.from(reqCanon, "utf8"));
 
   // Deterministic policy hash: bind pack to the exact policy file used.
-  // This makes "policy_sha256" non-null and audit-ready.
   const policyBytes = fs.readFileSync(policyPathAbs);
   const policySha256 = sha256Hex(policyBytes);
 
@@ -168,7 +191,7 @@ try {
     die("FAIL_CLOSED: SIGNATURE_ERROR missing signature");
   }
 
-  const packDir = path.join(outRoot, "evidence-pack", entryHash);
+  const packDir = path.join(outRootAbs, "evidence-pack", entryHash);
   ensureDir(packDir);
 
   fs.writeFileSync(path.join(packDir, "PACK_MANIFEST.json"), canonicalJson(packManifest));
