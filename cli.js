@@ -83,10 +83,10 @@ try {
     die("FAIL_CLOSED: INTERNAL_ERROR missing policy.result");
   }
 
-  if (policyResult === "DENY") {
-    const reasons = Array.isArray(evidence?.policy?.reasons) ? evidence.policy.reasons : ["DENY"];
-    die("FAIL_CLOSED: " + reasons.join(" | "));
-  }
+  // IMPORTANT: DENY still emits a signed Evidence Pack.
+  // Fail-closed means: do NOT execute actions on DENY, but DO leave an opposable trace.
+  const denyReasons = Array.isArray(evidence?.policy?.reasons) ? evidence.policy.reasons : ["DENY"];
+  const isDeny = policyResult === "DENY";
 
   const createdAt = new Date().toISOString();
 
@@ -100,8 +100,8 @@ try {
   };
 
   const resultJson = {
-    status: "PASS",
-    reason_codes: ["OK"],
+    status: isDeny ? "DENY" : "PASS",
+    reason_codes: isDeny ? denyReasons : ["OK"],
     checks: []
   };
 
@@ -173,7 +173,7 @@ try {
   fs.writeFileSync(path.join(packDir, "SIGNATURE.ed25519"), signatureB64 + "\n");
   fs.writeFileSync(path.join(packDir, "SIGNATURE_META.json"), canonicalJson(sigMeta));
 
-  process.stdout.write("PASS entry_hash=" + entryHash + "\n");
+  process.stdout.write((isDeny ? "DENY" : "PASS") + " entry_hash=" + entryHash + "\n");
 
 } catch (e) {
   die("FAIL_CLOSED: " + (e && e.message ? e.message : String(e)));
